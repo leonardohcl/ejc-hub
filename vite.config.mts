@@ -13,7 +13,7 @@ import { fileURLToPath, URL } from 'node:url'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: '/ejc-hub/',
+  base: process.env.NODE_ENV === "production" ? "/ejc-hub/" : "/",
   plugins: [
     VueRouter({
       dts: 'src/typed-router.d.ts',
