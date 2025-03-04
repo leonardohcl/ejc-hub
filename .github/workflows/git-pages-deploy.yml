@@ -1,0 +1,65 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    environment: github-pages
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 23.9.0
+
+      - name: Install dependencies
+        uses: bahmutov/npm-install@v1
+
+      - name: Make envfile
+        uses: SpicyPizza/create-envfile@v2.0
+        with:
+          envkey_VITE_API_KEY: ${{ vars.VITE_API_KEY }}
+          envkey_VITE_APP_ID: ${{ vars.VITE_APP_ID }}
+          envkey_VITE_AUTH_DOMAIN: ${{ vars.VITE_AUTH_DOMAIN }}
+          envkey_VITE_PROJECT_ID: ${{ vars.VITE_PROJECT_ID }}
+          envkey_VITE_STORAGE_BUCKET:  ${{ vars.VITE_STORAGE_BUCKET }}
+          envkey_VITE_MESSAGING_SENDER_ID: ${{ vars.VITE_MESSAGING_SENDER_ID }}
+          file_name: .env
+          fail_on_empty: false
+          sort_keys: false
+
+      - name: Build project
+        run: npm run build
+
+      - name: Upload production-ready build files
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-files
+          path: ./dist
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: production-files
+          path: ./dist
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist

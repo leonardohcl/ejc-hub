@@ -19,15 +19,16 @@ import type { App } from "vue";
 import type PlayerList from "@/model/PlayerList";
 import type Player from "@/model/Player";
 // ... other firebase imports
-
-export const firebaseApp = initializeApp({
+const config = {
   apiKey: import.meta.env.VITE_API_KEY,
   authDomain: import.meta.env.VITE_AUTH_DOMAIN,
   projectId: import.meta.env.VITE_PROJECT_ID,
   storageBucket: import.meta.env.VITE_STORAGE_BUCKET,
   messagingSenderId: import.meta.env.VITE_MESSAGING_SENDER_ID,
   appId: import.meta.env.VITE_APP_ID,
-});
+}
+console.log(config)
+export const firebaseApp = initializeApp(config);
 
 // used for the firestore refs
 const db = getFirestore(firebaseApp);
