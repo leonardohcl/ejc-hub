@@ -9,8 +9,14 @@
     >
       <CardSpace v-bind="card" show-state-toggler />
     </v-col>
+    <v-col cols="12" v-if="!currentCardPage.length">
+      <v-empty-state
+        title="Não tem nada aqui"
+        text="Talvez seja melhor dar uma olhada nos seus filtros"
+      />
+    </v-col>
     <v-col cols="12">
-      <v-pagination v-model="page" :length="pageCount"/>
+      <v-pagination v-model="page" :length="pageCount" />
     </v-col>
   </v-row>
 </template>
@@ -73,7 +79,7 @@ const displayedCards = computed(() =>
       }
       return true;
     })
-    .sort((a:Dictionary, b:Dictionary) => {
+    .sort((a: Dictionary, b: Dictionary) => {
       if (a[sortProperty.value] > b[sortProperty.value]) {
         return 1;
       } else {
@@ -82,14 +88,14 @@ const displayedCards = computed(() =>
     })
 );
 
-const page = ref(1)
-const pageSize = ref(12)
+const page = ref(1);
+const pageSize = ref(12);
 const pageCount = computed(() => {
-  return Math.ceil(displayedCards.value.length / pageSize.value)
-})
+  return Math.ceil(displayedCards.value.length / pageSize.value);
+});
 const currentCardPage = computed(() => {
-  const start = (page.value - 1) * pageSize.value
-  const end = start + pageSize.value
-  return displayedCards.value.slice(start, end)
-})
+  const start = (page.value - 1) * pageSize.value;
+  const end = start + pageSize.value;
+  return displayedCards.value.slice(start, end);
+});
 </script>

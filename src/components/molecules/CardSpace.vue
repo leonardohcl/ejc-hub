@@ -21,7 +21,7 @@
           class="flex-1-1-0"
           :color="getCardHave(number) ? 'primary' : ''"
           @click="toggleHaveIt"
-          >Tenho</v-btn
+          >Troco</v-btn
         >
         <v-btn
           class="flex-1-1-0"

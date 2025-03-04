@@ -1,7 +1,7 @@
 <template>
   <v-container class="relative">
     <v-banner
-      v-if="!getUsername || !getFriendId"
+      v-if="!getUsername"
       class="mb-2"
       icon="mdi-alert"
       color="warning"
@@ -10,7 +10,7 @@
     >
       <v-banner-text>
         <b>Opa!</b><br />
-        Parece que você ainda não registrou seu nome no jogo e id de amigo. Sem
+        Parece que você ainda não registrou seu nome no jogo. Sem
         essas informações não será possível salvar sua coleção
       </v-banner-text>
       <v-banner-actions>
@@ -18,7 +18,7 @@
       </v-banner-actions>
     </v-banner>
     <v-row>
-      <v-col cols="12" md="3" xl="2">
+      <v-col cols="12" md="3" xl="2" class="d-flex flex-column ga-2">
         <v-expansion-panels multiple>
           <v-expansion-panel title="Filtrar" static>
             <v-expansion-panel-text>
@@ -39,7 +39,7 @@
               <v-row class="w-100" no-gutters>
                 <v-col cols="12">
                   <v-switch
-                    label="Tenho"
+                    label="Troco"
                     v-model="displayOptions.showHaves"
                     color="primary"
                     hide-details
@@ -81,6 +81,46 @@
             </v-expansion-panel-text>
           </v-expansion-panel>
         </v-expansion-panels>
+        <v-card>
+          <v-card-title class="text-body-2"> Aplicados </v-card-title>
+          <v-card-text class="d-flex ga-2 flex-wrap">
+            <v-chip
+              v-if="displayOptions.showHaves"
+              color="primary"
+              size="small"
+              variant="outlined"
+              @click="displayOptions.showHaves = false"
+            >
+              Troco
+            </v-chip>
+            <v-chip
+              v-if="displayOptions.showWants"
+              color="warning"
+              size="small"
+              variant="outlined"
+              @click="displayOptions.showWants = false"
+            >
+              Quero
+            </v-chip>
+            <v-chip
+              v-if="displayOptions.showUnanswered"
+              size="small"
+              variant="outlined"
+              color="grey"
+              @click="displayOptions.showUnanswered = false"
+            >
+              Não Respondido
+            </v-chip>
+            <v-chip
+              v-for="rarity in rarityFilter"
+              size="small"
+              variant="tonal"
+              @click="removeRarityFromFilter(rarity)"
+            >
+              <RarirtyDisplay :rarity="rarity" />
+            </v-chip>
+          </v-card-text>
+        </v-card>
       </v-col>
       <v-col cols="12" md="9" xl="10">
         <v-tabs v-model="tab">
@@ -121,6 +161,7 @@ meta:
 
 <script lang="ts" setup>
 import cards from "@/assets/data/cards";
+import RarirtyDisplay from "@/components/atoms/RarirtyDisplay.vue";
 import { ExpansionSet, Rarity, type Card } from "@/model/Card";
 import { useAppStore } from "@/stores/app";
 import { storeToRefs } from "pinia";
@@ -155,5 +196,9 @@ const rarityOptions = [
   Rarity.Crown,
 ];
 
-const rarityFilter = ref([]);
+const rarityFilter = ref([Rarity.ThreeDiamonds, Rarity.FourDiamonds]);
+
+const removeRarityFromFilter = (rarity:Rarity) => {
+  rarityFilter.value = rarityFilter.value.filter(x => x !== rarity)
+}
 </script>

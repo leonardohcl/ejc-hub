@@ -75,7 +75,7 @@ export const useAppStore = defineStore("app", {
     },
     loadPlayer(player: Player) {
       this.username = player.username;
-      this.friendId = player.friendId;
+      this.friendId = player.friendId || "";
     },
   },
 });

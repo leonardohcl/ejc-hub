@@ -20,6 +20,11 @@
     </v-card>
     <template v-else>
       <PlayerListMatch v-for="list in matches" v-bind="list" />
+      <v-empty-state
+        v-if="!matches.length"
+        title="Nenhuma troca encontrada"
+        text="Não encontramos nenhuma lista com cartas que você precisa"
+      ></v-empty-state>
     </template>
     <v-pagination v-model="page" :length="pageCount" />
   </v-container>

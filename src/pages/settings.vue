@@ -9,7 +9,7 @@
               <v-text-field label="Nome no jogo" v-model="username" required />
             </v-col>
             <v-col col="12" md="6" lg="4" xl="3">
-              <v-text-field label="Id de amigo" v-model="friendId" required />
+              <v-text-field label="Id de amigo" v-model="friendId" />
             </v-col>
           </v-row>
         </v-card-text>
@@ -40,7 +40,7 @@ onMounted(async () => {
   const data = await loadPlayerData(user.uid);
   if (!data) return;
   username.value = data.username;
-  friendId.value = data.friendId;
+  friendId.value = data.friendId || "";
 });
 
 const handleSubmit = async () => {
