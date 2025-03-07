@@ -2,7 +2,6 @@
 import type { Dictionary } from "@/model/Dictionary";
 import type Player from "@/model/Player";
 import type PlayerList from "@/model/PlayerList";
-import { remove } from "firebase/database";
 import { defineStore } from "pinia";
 
 export const useAppStore = defineStore("app", {

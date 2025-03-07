@@ -1,101 +1,93 @@
 <template>
-  <v-row>
-    <v-col
-      v-for="card in currentCardPage"
-      cols="6"
-      md="4"
-      xl="3"
-      :key="card.number"
-    >
+  <v-row v-if="isLoading">
+    <v-col v-for="_ in pageSize" cols="6" md="4" xl="3">
+      <v-skeleton-loader type="card"></v-skeleton-loader>
+    </v-col>
+  </v-row>
+  <v-row v-else>
+    <v-col v-for="card in cardPage" cols="6" md="4" xl="3" :key="card.number">
       <CardSpace v-bind="card" show-state-toggler />
     </v-col>
-    <v-col cols="12" v-if="!currentCardPage.length">
+    <v-col cols="12" v-if="!cardList.length">
       <v-empty-state
         title="Não tem nada aqui"
         text="Talvez seja melhor dar uma olhada nos seus filtros"
       />
     </v-col>
     <v-col cols="12">
-      <v-pagination v-model="page" :length="pageCount" />
+      <v-pagination v-model="page" :length="pageCount || 1" />
     </v-col>
   </v-row>
 </template>
 
 <script setup lang="ts">
-import type { Card, Rarity } from "@/model/Card";
+import { ExpansionSet, type Card, type Rarity } from "@/model/Card";
 import type { Dictionary } from "@/model/Dictionary";
-import { useAppStore } from "@/stores/app";
+import { getCards } from "@/plugins/firebase";
+import { useCardStore } from "@/stores/cards";
 import { storeToRefs } from "pinia";
 import type { PropType } from "vue";
 
-const store = useAppStore();
-const { getCardHave, getCardWants } = storeToRefs(store);
-
 const props = defineProps({
-  cardList: {
-    type: Array<Card>,
-    required: true,
-  },
-  hideHaves: {
-    type: Boolean,
-  },
-  hideWants: {
-    type: Boolean,
-  },
-  hideUnsawered: {
-    type: Boolean,
+  expansion: {
+    type: Number as PropType<ExpansionSet>,
+    default: ExpansionSet.PromoA,
   },
   rarityFilter: {
     type: Array<Rarity>,
   },
   sortBy: {
-    type: String as PropType<"alphabetical" | "rarity" | "number">,
-    default: "alphabetical",
+    type: String as PropType<"name" | "rarity" | "number">,
+    default: "number",
   },
 });
 
-const sortProperty = computed(
-  () =>
-    ({
-      alphabetical: "name",
-      rarity: "rarity",
-      number: "number",
-    }[props.sortBy])
-);
+const cardStore = useCardStore();
+const { getQuery } = storeToRefs(cardStore);
 
-const displayedCards = computed(() =>
-  props.cardList
-    .filter((card) => {
-      if (props.hideHaves && getCardHave.value(card.number)) return false;
-      if (props.hideWants && getCardWants.value(card.number)) return false;
-      if (
-        props.hideUnsawered &&
-        !getCardHave.value(card.number) &&
-        !getCardWants.value(card.number)
-      )
-        return false;
-      if (props.rarityFilter && props.rarityFilter.length > 0) {
-        return props.rarityFilter.indexOf(card.rarity) >= 0;
-      }
-      return true;
-    })
-    .sort((a: Dictionary, b: Dictionary) => {
-      if (a[sortProperty.value] > b[sortProperty.value]) {
-        return 1;
-      } else {
-        return -1;
-      }
-    })
-);
+const cardList = ref<Array<Card>>([]);
+const isLoading = ref(false);
+
+const totalCards = computed(() => filteredCardList.value.length);
 
 const page = ref(1);
 const pageSize = ref(12);
 const pageCount = computed(() => {
-  return Math.ceil(displayedCards.value.length / pageSize.value);
+  return Math.ceil(totalCards.value / pageSize.value);
 });
-const currentCardPage = computed(() => {
+
+const cardPage = computed(() => {
   const start = (page.value - 1) * pageSize.value;
   const end = start + pageSize.value;
-  return displayedCards.value.slice(start, end);
+  return filteredCardList.value
+    .sort((a: Dictionary, b: Dictionary) =>
+      a[props.sortBy] < b[props.sortBy] ? -1 : 1
+    )
+    .slice(start, end);
+});
+
+const filteredCardList = computed(() =>
+  cardList.value.filter(
+    (x) => (props.rarityFilter?.indexOf(x.rarity) ?? -1) >= 0
+  )
+);
+
+const loadCards = async () => {
+  const query = {
+    expansion: [props.expansion],
+  };
+  const cached = getQuery.value(query);
+  if (!cached) {
+    isLoading.value = true;
+    cardList.value = await getCards(query);
+    cardStore.saveQuery(query, cardList.value)
+    isLoading.value = false;
+  } else {
+    cardList.value = cached;
+  }
+};
+
+onMounted(async () => {
+  loadCards();
 });
 </script>

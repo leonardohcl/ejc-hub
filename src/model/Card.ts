@@ -23,3 +23,12 @@ export interface Card {
   rarity: Rarity;
   expansion: ExpansionSet;
 }
+
+export interface CardQuery {
+  lastCard?: Card;
+  expansion?: Array<ExpansionSet>;
+  rarity?: Array<Rarity>;
+  page?: number;
+  pageSize?: number;
+  order?: "name" | "number" | "rarity";
+}
