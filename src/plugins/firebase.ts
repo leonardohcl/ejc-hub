@@ -4,28 +4,29 @@ import {
   collection,
   doc,
   DocumentReference,
-  getDoc,
-  getDocs,
+  getDocFromCache,
   getFirestore,
+  initializeFirestore,
   limit,
   orderBy,
+  persistentLocalCache,
   query,
   QueryConstraint,
   QueryDocumentSnapshot,
   setDoc,
   startAfter,
-  startAt,
   where,
   type QueryFilterConstraint,
   type SnapshotOptions,
   type WithFieldValue,
 } from "firebase/firestore";
-import { VueFire, VueFireAuth } from "vuefire";
+import { VueFire, VueFireAuth, VueFireFirestoreOptionsAPI } from "vuefire";
+import { useCollection, useDocument } from "vuefire";
 
 import type { App } from "vue";
 import type PlayerList from "@/model/PlayerList";
 import type Player from "@/model/Player";
-import type { Card, CardQuery, ExpansionSet, Rarity } from "@/model/Card";
+import type { Card, CardQuery } from "@/model/Card";
 
 // ... other firebase imports
 export const firebaseApp = initializeApp({
@@ -37,6 +38,8 @@ export const firebaseApp = initializeApp({
   appId: import.meta.env.VITE_APP_ID,
 });
 
+initializeFirestore(firebaseApp, { localCache: persistentLocalCache() });
+
 // used for the firestore refs
 const db = getFirestore(firebaseApp);
 
@@ -47,6 +50,9 @@ export function registerFirebase(app: App) {
     modules: [
       // we will see other modules later on
       VueFireAuth(),
+      VueFireFirestoreOptionsAPI({
+        once: true,
+      }),
     ],
   });
 }
@@ -98,27 +104,29 @@ export async function registerWantsAndHaves(data: PlayerList) {
 }
 
 export async function getWantsAndHaves(userId: string) {
-  const listRef = getPlayerListReference(userId).withConverter(listConverter);
-  const snap = await getDoc(listRef);
-  if (!snap.exists()) {
+  const listRef = useDocument(
+    getPlayerListReference(userId).withConverter(listConverter),
+    { once: true }
+  );
+  const snap = await listRef.promise.value;
+  if (!snap) {
     return null;
   }
-  return snap.data();
+  return snap as PlayerList;
 }
 
 export async function getMatchingHaves(wants: Array<string>) {
   if (!wants.length) return [];
-  const q = query(
-    collection(db, TCGP_LISTS_COLLECTION_ID),
-    where("haves", "array-contains-any", wants.map(getCardReference))
-  ).withConverter(listConverter);
+  const q = useCollection(
+    query(
+      collection(db, TCGP_LISTS_COLLECTION_ID),
+      where("haves", "array-contains-any", wants.map(getCardReference))
+    ).withConverter(listConverter),
+    { once: true }
+  );
 
-  const snap = await getDocs(q);
-  const data: Array<PlayerList> = [];
-  snap.forEach((doc) => {
-    data.push(doc.data() as PlayerList);
-  });
-  return data;
+  const snap = await q.promise.value;
+  return snap as Array<PlayerList>;
 }
 
 function getCardQuery({
@@ -153,25 +161,17 @@ function getCardQuery({
 
   const condition = wheres.length > 1 ? and(...wheres) : wheres.pop();
   const filter = condition ? [condition as QueryConstraint, ...params] : params;
-
-  return query(collection(db, TCGP_CARDS_COLLECTION_ID), ...filter);
-}
-
-export async function getCardCount({ expansion, rarity }: CardQuery) {
-  const q = getCardQuery({ expansion, rarity });
-  const snap = await getDocs(q);
-  return snap.size;
+  return useCollection(
+    query(collection(db, TCGP_CARDS_COLLECTION_ID), ...filter),
+    { once: true }
+  );
 }
 
 export async function getCards(params: CardQuery) {
   try {
     const q = getCardQuery(params);
-    const snap = await getDocs(q);
-    const data: Array<Card> = [];
-    snap.forEach((doc) => {
-      data.push(doc.data() as Card);
-    });
-    return data;
+    const snap = (await q.promise.value) as Card[];
+    return snap;
   } catch (err) {
     console.error(err);
     return [];
@@ -179,11 +179,12 @@ export async function getCards(params: CardQuery) {
 }
 
 export async function loadPlayerData(userId: string) {
-  const snap = await getDoc(getPlayerReference(userId));
-  if (!snap.exists()) {
+  const doc = useDocument(getPlayerReference(userId), { once: true });
+  const snap = await doc.promise.value;
+  if (!snap) {
     return null;
   }
-  return snap.data() as Player;
+  return snap as Player;
 }
 
 export async function savePlayerData(data: Player) {

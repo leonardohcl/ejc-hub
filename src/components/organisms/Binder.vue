@@ -43,7 +43,6 @@ const props = defineProps({
 });
 
 const cardStore = useCardStore();
-const { getQuery } = storeToRefs(cardStore);
 
 const cardList = ref<Array<Card>>([]);
 const isLoading = ref(false);
@@ -76,7 +75,7 @@ const loadCards = async () => {
   const query = {
     expansion: [props.expansion],
   };
-  const cached = getQuery.value(query);
+  const cached = cardStore.getQuery(query);
   if (!cached) {
     isLoading.value = true;
     cardList.value = await getCards(query);
