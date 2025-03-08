@@ -116,7 +116,7 @@ const selectedState = computed<"have" | "want" | "unk">(() => {
   return "unk";
 });
 const imageUrl = computed(() => {
-  return `/images/${card.value.number.replace(" ", "_")}_EN.webp`;
+  return `./images/${card.value.number.replace(" ", "_")}_EN.webp`;
 });
 
 const color = computed(() => {
