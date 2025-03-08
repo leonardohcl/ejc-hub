@@ -11,11 +11,13 @@ declare module 'vue' {
     Binder: typeof import('./components/organisms/Binder.vue')['default']
     CardSpace: typeof import('./components/molecules/CardSpace.vue')['default']
     ExpansionDisplay: typeof import('./components/atoms/ExpansionDisplay.vue')['default']
+    PlayerListDetails: typeof import('./components/molecules/PlayerListDetails.vue')['default']
     PlayerListMatch: typeof import('./components/molecules/PlayerListMatch.vue')['default']
     RarirtyDisplay: typeof import('./components/atoms/RarirtyDisplay.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SaveButton: typeof import('./components/atoms/SaveButton.vue')['default']
+    SignOutButton: typeof import('./components/atoms/SignOutButton.vue')['default']
     UserMenu: typeof import('./components/molecules/UserMenu.vue')['default']
   }
 }

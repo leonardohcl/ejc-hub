@@ -25,7 +25,7 @@ export interface Card {
 }
 
 export interface CardQuery {
-  lastCard?: Card;
+  number?: string;
   expansion?: Array<ExpansionSet>;
   rarity?: Array<Rarity>;
   page?: number;

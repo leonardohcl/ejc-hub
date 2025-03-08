@@ -1,6 +1,14 @@
 <template>
   <v-container>
     <h1 class="mb-2">Sua Conta</h1>
+    <v-snackbar
+      v-model="snack"
+      :color="snackColor"
+      close-delay="5000"
+      location="top center"
+    >
+      {{ message }}
+    </v-snackbar>
     <v-form @submit.prevent="handleSubmit" :disabled="isLoading">
       <v-card>
         <v-card-text>
@@ -33,6 +41,9 @@ import { getCurrentUser } from "vuefire";
 const isLoading = ref(false);
 const username = ref("");
 const friendId = ref("");
+const snack = ref(false);
+const snackColor = ref("");
+const message = ref("");
 
 onMounted(async () => {
   const user = await getCurrentUser();
@@ -44,14 +55,27 @@ onMounted(async () => {
 });
 
 const handleSubmit = async () => {
-  const user = await getCurrentUser();
-  if (!user) return;
-  isLoading.value = true;
-  await savePlayerData({
-    id: user.uid,
-    username: username.value,
-    friendId: friendId.value,
-  });
-  isLoading.value = false;
+  try {
+
+    const user = await getCurrentUser();
+    if (!user) return;
+    isLoading.value = true;
+    await savePlayerData({
+      id: user.uid,
+      username: username.value,
+      friendId: friendId.value,
+    });
+    message.value = 'Dados atualizados com sucesso'
+    snackColor.value = 'success'
+    snack.value = true
+  } catch (err) {
+    console.error(err)
+    message.value = 'NÀo foi possível salvar seus dados. Por favor tente mais tarde.'
+    snackColor.value = 'error'
+    snack.value = true
+  } finally {
+
+    isLoading.value = false;
+  }
 };
 </script>

@@ -1,21 +1,15 @@
 <template>
-  <v-fab
-    extended
-    text="Salvar"
-    prepend-icon="mdi-floppy"
-    app
-    color="primary"
-    :loading="isLoading"
-    @click="handleSave"
-  />
-  <v-snackbar
-    v-model="snack"
-    :color="snackColor"
-    close-delay="5000"
-    location="top center"
-  >
-    {{ message }}
-  </v-snackbar>
+  <v-btn prepend-icon="mdi-floppy" :loading="isLoading" @click="handleSave">
+    Salvar
+    <v-snackbar
+      v-model="snack"
+      :color="snackColor"
+      close-delay="5000"
+      location="top center"
+    >
+      {{ message }}
+    </v-snackbar>
+  </v-btn>
 </template>
 
 <script setup lang="ts">
@@ -48,9 +42,9 @@ const handleSave = async () => {
       friendId: getFriendId.value,
     };
 
-    if (!data.username || !data.friendId) {
+    if (!data.username) {
       isLoading.value = false;
-      message.value = "Por favor atualize seu nome de jogardor e id de amigo";
+      message.value = "Por favor atualize seu nome de jogardor";
       snackColor.value = "red";
       return;
     }

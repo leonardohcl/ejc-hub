@@ -1,36 +1,28 @@
 <template>
-  <v-btn v-if="user" class="p-0" size="large">
-    <v-row class="flex-nowrap text-right" no-gutters>
-      <v-col cols="auto" class="mr-2">
-        <span class="text-body-1"> {{ getUsername || user.displayName }} </span><br>
-        <span class="text-body-2">{{ getFriendId || user.email }}</span>
-      </v-col>
-      <v-col cols="auto">
-        <v-avatar
-          v-if="user.photoURL"
-          color="surface-variant"
-          :image="user.photoURL"
-        />
-        <v-avatar v-else color="surface-variant"> </v-avatar>
-      </v-col>
-    </v-row>
-    <v-menu activator="parent">
-      <v-list class="text-right">
-        <v-list-item tag="router-link" to="settings" title="Perfil">
-        </v-list-item>
-        <v-list-item @click="handleSignOut" title="Sair"> </v-list-item>
-      </v-list>
-    </v-menu>
-  </v-btn>
-  <v-btn
-    v-else
-    prepend-icon="mdi-login"
-    :disabled="isLoading"
-    :loading="isLoading"
-    @click="signinPopup"
-  >
-    Entrar com conta Google
-  </v-btn>
+  <template v-if="user">
+    <v-list-item
+      :prepend-avatar="user.photoURL ?? ''"
+      :title="getUsername || user.displayName || ''"
+      :subtitle="getFriendId || user.email || ''"
+      tag="router-link"
+      to="settings"
+    >
+    </v-list-item>
+    <v-list-item @click="handleSignOut">
+      <v-icon icon="mdi-logout"/>
+      Sair
+    </v-list-item>
+  </template>
+  <v-list-item v-else>
+    <v-btn
+      prepend-icon="mdi-google"
+      :disabled="isLoading"
+      :loading="isLoading"
+      @click="signinPopup"
+    >
+      Entrar com Google
+    </v-btn>
+  </v-list-item>
 </template>
 
 <script lang="ts">
@@ -47,12 +39,9 @@ import { useCurrentUser, useFirebaseAuth } from "vuefire";
 const auth = useFirebaseAuth();
 const user = useCurrentUser();
 const store = useAppStore();
+const router = useRouter();
+
 const { getUsername, getFriendId } = storeToRefs(store);
-
-const handleSignOut = async () => {
-  if (auth) await signOut(auth);
-};
-
 const isLoading = ref(false);
 
 const signinPopup = async () => {
@@ -62,5 +51,11 @@ const signinPopup = async () => {
     console.error("Failed sign", reason);
   });
   isLoading.value = false;
+};
+
+const handleSignOut = async () => {
+  if (!auth) return;
+  await signOut(auth);
+  router.push("/");
 };
 </script>

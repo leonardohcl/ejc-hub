@@ -115,13 +115,11 @@ export async function getWantsAndHaves(userId: string) {
   return snap as PlayerList;
 }
 
-export async function getMatchingHaves(wants: Array<string>) {
-  if (!wants.length) return [];
+export async function getPlayerLists() {
   const q = useCollection(
-    query(
-      collection(db, TCGP_LISTS_COLLECTION_ID),
-      where("haves", "array-contains-any", wants.map(getCardReference))
-    ).withConverter(listConverter),
+    query(collection(db, TCGP_LISTS_COLLECTION_ID)).withConverter(
+      listConverter
+    ),
     { once: true }
   );
 
@@ -130,7 +128,7 @@ export async function getMatchingHaves(wants: Array<string>) {
 }
 
 function getCardQuery({
-  lastCard,
+  number,
   pageSize,
   order,
   expansion,
@@ -139,6 +137,10 @@ function getCardQuery({
   const params: Array<QueryConstraint> = [];
 
   const wheres: Array<QueryFilterConstraint> = [];
+
+  if (number) {
+    wheres.push(where("number", "==", number));
+  }
 
   if (expansion !== undefined) {
     wheres.push(where("expansion", "in", expansion));
@@ -150,9 +152,6 @@ function getCardQuery({
 
   if (order !== undefined) {
     params.push(orderBy(order));
-    if (lastCard) {
-      params.push(startAfter(lastCard[order]));
-    }
   }
 
   if (pageSize) {

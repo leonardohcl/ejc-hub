@@ -1,6 +1,12 @@
 <template>
   <v-container>
-    <h1 class="mb-2">Trocas</h1>
+    <h1 class="mb-2">Listas</h1>
+    <v-switch
+      label="Mostrar Apenas listas com cartas que eu quero"
+      :disabled="isLoading"
+      v-model="isMatchOnly"
+      color="primary"
+    ></v-switch>
     <v-card v-if="isLoading">
       <v-row>
         <v-col cols="12">
@@ -18,14 +24,14 @@
         </v-col>
       </v-row>
     </v-card>
-    <template v-else>
-      <PlayerListMatch v-for="list in matches" v-bind="list" />
+    <div class="d-flex flex-column ga-3" v-else>
+      <PlayerListDetails v-for="list in displayedLists" v-bind="list" />
       <v-empty-state
-        v-if="!matches.length"
-        title="Nenhuma troca encontrada"
-        text="Não encontramos nenhuma lista com cartas que você precisa"
+        v-if="!displayedLists.length"
+        title="Nenhuma lista encontrada"
+        text="Não encontramos nenhuma lista com os seus parâmetros"
       ></v-empty-state>
-    </template>
+    </div>
     <v-pagination v-model="page" :length="pageCount" />
   </v-container>
 </template>
@@ -37,34 +43,35 @@ meta:
 
 <script setup lang="ts">
 import type PlayerList from "@/model/PlayerList";
-import { getMatchingHaves } from "@/plugins/firebase";
+import { getPlayerLists } from "@/plugins/firebase";
 import { useAppStore } from "@/stores/app";
 import { storeToRefs } from "pinia";
 
-const store = useAppStore();
-const { getWantsList } = storeToRefs(store);
-const matches = ref<Array<PlayerList>>([]);
+const appStore = useAppStore();
+const { getWantsList: userWants } = storeToRefs(appStore);
+const lists = ref<Array<PlayerList>>([]);
 const isLoading = ref(false);
+const isMatchOnly = ref(true);
 
-const loadMatches = async () => {
-  if (!getWantsList.value.length) return;
+const displayedLists = computed(() => {
+  if (!isMatchOnly.value) return lists.value;
+
+  return lists.value.filter((list) => {
+    return userWants.value.some((number) => list.haves.indexOf(number) >= 0);
+  });
+});
+
+const loadLists = async () => {
   isLoading.value = true;
-  matches.value = await getMatchingHaves(getWantsList.value);
+  lists.value = await getPlayerLists();
   isLoading.value = false;
 };
 
 const page = ref(1);
 const pageSize = ref(5);
 const pageCount = computed(() => {
-  return Math.ceil(matches.value.length / pageSize.value);
-});
-const currentMatchPage = computed(() => {
-  const start = (page.value - 1) * pageSize.value;
-  const end = start + pageSize.value;
-  return matches.value.slice(start, end);
+  return Math.ceil(lists.value.length / pageSize.value);
 });
 
-watch(getWantsList, () => loadMatches());
-
-onMounted(loadMatches);
+onMounted(loadLists);
 </script>
