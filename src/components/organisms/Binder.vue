@@ -4,7 +4,8 @@
       v-for="_ in pageSize"
       :cols="isTable ? 12 : 6"
       :md="isTable ? 12 : 4"
-      :xl="isTable ? 12 : 3"
+      :lg="isTable ? 12 : 3"
+      :xl="isTable ? 12 : 2"
     >
       <v-skeleton-loader
         :type="isTable ? 'list-item-two-line' : 'card'"
@@ -16,14 +17,15 @@
       v-for="(card, idx) in cardPage"
       :cols="isTable ? 12 : 6"
       :md="isTable ? 12 : 4"
-      :xl="isTable ? 12 : 3"
+      :lg="isTable ? 12 : 3"
+      :xl="isTable ? 12 : 2"
       :key="card.number"
     >
       <CardSpace
         v-bind="card"
         show-state-toggler
         :is-table="isTable"
-        :color="isTable ? (idx % 2 == 0 ? 'white-darken-1' : 'grey') : ''"
+        :is-even="idx % 2 == 0"
       />
     </v-col>
     <v-col cols="12" v-if="!cardList.length">

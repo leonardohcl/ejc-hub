@@ -8,11 +8,29 @@
     :class="{ 'd-flex': isTable }"
     :rounded="!isTable"
     :density="isTable ? 'compact' : 'comfortable'"
-    :variant="isTable ? 'tonal' : 'flat'"
+    :variant="color ? 'tonal' : 'flat'"
+    :color="color"
   >
     <v-card-text
       class="d-flex align-md-center flex-wrap flex-md-row flex-column text-left"
     >
+      <div
+        v-if="!isTable"
+        class="d-flex flex-1-1-100"
+        :class="{ 'opacity-30': selectedState === 'unk' }"
+      >
+        <v-img
+          :src="imageUrl"
+          :lazy-src="imageUrl"
+          color="surface-variant-light"
+          aspect-ratio="3/4"
+          max-width="300px"
+        >
+          <template #sources>
+            <source :srcset="imageUrl" />
+          </template>
+        </v-img>
+      </div>
       <span class="text-h6">
         {{ card.name }}
       </span>
@@ -31,13 +49,13 @@
       <v-btn-group class="w-100 d-flex flex-no-wrap" density="compact">
         <v-btn
           class="flex-1-1-0"
-          :color="getCardHave(number) ? 'deep-purple' : 'background'"
+          :color="selectedState === 'have' ? 'deep-purple' : 'background'"
           @click="toggleHaveIt"
           >Troco</v-btn
         >
         <v-btn
           class="flex-1-1-0"
-          :color="getCardWants(number) ? 'pink' : 'background'"
+          :color="selectedState === 'want' ? 'pink' : 'background'"
           @click="toggleWantIt"
           >Quero</v-btn
         >
@@ -49,7 +67,7 @@
 <script lang="ts">
 const MISSINGNO: Card = {
   name: "Missingno",
-  number: "00000",
+  number: "P-A 001",
   expansion: ExpansionSet.PromoA,
   rarity: Rarity.Crown,
 };
@@ -73,6 +91,9 @@ const props = defineProps({
   isTable: {
     type: Boolean,
   },
+  isEven: {
+    type: Boolean,
+  },
 });
 
 const appStore = useAppStore();
@@ -88,6 +109,26 @@ const toggleHaveIt = () => {
 };
 
 const card = ref<Card>(MISSINGNO);
+
+const selectedState = computed<"have" | "want" | "unk">(() => {
+  if (getCardHave.value(card.value.number)) return "have";
+  if (getCardWants.value(card.value.number)) return "want";
+  return "unk";
+});
+const imageUrl = computed(() => {
+  return `/images/${card.value.number.replace(" ", "_")}_EN.webp`;
+});
+
+const color = computed(() => {
+  if (props.isTable) {
+    return props.isEven ? "white-darken-1" : "grey";
+  }
+  return {
+    unk: "",
+    have: "deep-purple",
+    want: "pink",
+  }[selectedState.value];
+});
 
 const loadCard = async (number: string): Promise<Card> => {
   const stored = getCard(number);
