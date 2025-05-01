@@ -2,10 +2,10 @@
   <v-row v-if="isLoading" :no-gutters="isTable">
     <v-col
       v-for="_ in pageSize"
-      :cols="isTable ? 12 : 6"
-      :md="isTable ? 12 : 4"
-      :lg="isTable ? 12 : 3"
-      :xl="isTable ? 12 : 2"
+      :cols="isTable ? 12 : 4"
+      :md="isTable ? 12 : 3"
+      :lg="isTable ? 12 : 2"
+      :xl="isTable ? 12 : 1"
     >
       <v-skeleton-loader
         :type="isTable ? 'list-item-two-line' : 'card'"
@@ -13,6 +13,11 @@
     </v-col>
   </v-row>
   <v-row v-else :no-gutters="isTable">
+    <v-col v-if="hiddenCount && !showHidden" cols="12">
+      <p class="text-center text-grey">
+        <em> {{ hiddenCount }} cartas ocultas </em>
+      </p>
+    </v-col>
     <v-col
       v-for="(card, idx) in cardPage"
       :cols="isTable ? 12 : 6"
@@ -67,6 +72,10 @@ const props = defineProps({
     type: String as PropType<"table" | "binder">,
     default: "binder",
   },
+  showHidden: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const cardStore = useCardStore();
@@ -82,6 +91,10 @@ const pageCount = computed(() => {
   return Math.ceil(totalCards.value / props.pageSize);
 });
 
+const hiddenCount = computed(() => {
+  return cardList.value.filter((x) => cardStore.isHidden(x.number)).length;
+});
+
 const cardPage = computed(() => {
   const start = (page.value - 1) * props.pageSize;
   const end = start + props.pageSize;
@@ -93,9 +106,11 @@ const cardPage = computed(() => {
 });
 
 const filteredCardList = computed(() =>
-  cardList.value.filter(
-    (x) => (props.rarityFilter?.indexOf(x.rarity) ?? -1) >= 0
-  )
+  cardList.value.filter((card) => {
+    if (cardStore.isHidden(card.number) && !props.showHidden) return false;
+    if ((props.rarityFilter?.indexOf(card.rarity) ?? -1) < 0) return false;
+    return true;
+  })
 );
 
 const loadCards = async () => {

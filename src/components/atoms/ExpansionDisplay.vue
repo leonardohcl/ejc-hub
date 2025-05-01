@@ -15,8 +15,11 @@ const props = defineProps({
 const output = computed(() => {
   return {
     [ExpansionSet.GeneticApex]: "Genetic Apex",
-    [ExpansionSet.SpaceTimeSmackdown]: "Space Time Smackdown",
     [ExpansionSet.MythicalIsland]: "Mythical Island",
+    [ExpansionSet.SpaceTimeSmackdown]: "Space Time Smackdown",
+    [ExpansionSet.TriumphantLight]: "Triumphant Light",
+    [ExpansionSet.ShinyRevelry]: "Shiny Revelry",
+    [ExpansionSet.CelestialGuardians]: "Celestial Guardians",
     [ExpansionSet.PromoA]: "Promo-A",
   }[props.expansion];
 });

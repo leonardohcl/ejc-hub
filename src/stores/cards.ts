@@ -21,6 +21,7 @@ export const useCardStore = defineStore(
     const queriesTimestamps = ref<Dictionary<string>>({});
     const cards = ref<Dictionary<Card>>({});
     const cardsTimestamps = ref<Dictionary<string>>({});
+    const hiddenCards = ref<Dictionary<boolean>>({});
 
     const getQuery = (query: CardQuery) => {
       const id = getQueryId(query);
@@ -48,6 +49,10 @@ export const useCardStore = defineStore(
       return stored;
     };
 
+    const getCards = (numbers: string[]) => {
+      return numbers.map(n => getCard(n))
+    }
+
     const saveCard = (card: Card) => {
       const id = card.number;
       cards.value[id] = card;
@@ -62,15 +67,27 @@ export const useCardStore = defineStore(
       return diff > QUERY_PERSISTENCE_EXPIRATION;
     };
 
+    const isHidden = (number: string) => {
+      return !!hiddenCards.value[number];
+    };
+
+    const setHidden = (number: string, isHidden: boolean) => {
+      hiddenCards.value[number] = isHidden;
+    };
+
     return {
       queries,
       queriesTimestamps,
       cards,
       cardsTimestamps,
+      hiddenCards,
       getCard,
+      getCards,
       saveCard,
       getQuery,
       saveQuery,
+      isHidden,
+      setHidden,
     };
   },
   {

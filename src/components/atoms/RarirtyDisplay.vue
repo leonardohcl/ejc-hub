@@ -23,6 +23,8 @@ const output = computed(() => {
     [Rarity.TwoStars]: "⭐⭐",
     [Rarity.ThreeStars]: "⭐⭐⭐",
     [Rarity.Crown]: "👑",
+    [Rarity.Shiny]: "✨",
+    [Rarity.DoubleShiny]: "✨✨",
   }[props.rarity];
 });
 </script>

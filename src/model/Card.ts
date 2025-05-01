@@ -8,6 +8,8 @@ export enum Rarity {
   TwoStars,
   ThreeStars,
   Crown,
+  Shiny,
+  DoubleShiny
 }
 
 export enum ExpansionSet {
@@ -15,6 +17,9 @@ export enum ExpansionSet {
   GeneticApex,
   MythicalIsland,
   SpaceTimeSmackdown,
+  TriumphantLight,
+  ShinyRevelry,
+  CelestialGuardians,
 }
 
 export interface Card {

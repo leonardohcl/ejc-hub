@@ -11,9 +11,7 @@
     :variant="color ? 'tonal' : 'flat'"
     :color="color"
   >
-    <v-card-text
-      class="d-flex align-md-center flex-wrap flex-md-row flex-column text-left"
-    >
+    <v-card-text class="d-flex align-md-center flex-wrap flex-row text-left">
       <div
         v-if="!isTable"
         class="d-flex flex-1-1-100"
@@ -25,14 +23,23 @@
           color="surface-variant-light"
           aspect-ratio="3/4"
           max-width="300px"
+          content-class="h-100"
+          cover
         >
           <template #sources>
             <source :srcset="imageUrl" />
           </template>
         </v-img>
       </div>
-      <span class="text-h6">
+      <span class="text-h6 d-flex">
         {{ card.name }}
+        <v-btn
+          variant="plain"
+          size="x-small"
+          :icon="isHidden ? 'mdi-eye' : 'mdi-eye-off'"
+          :color="isHidden ? '' : 'error'"
+          @click="toggleHidden"
+        />
       </span>
       <small class="text-caption text-grey ml-1">(#{{ number }})</small>
       <ExpansionDisplay
@@ -99,7 +106,10 @@ const props = defineProps({
 const appStore = useAppStore();
 const { getCardHave, getCardWants } = storeToRefs(appStore);
 const isLoading = ref(false);
-const { getCard, saveCard } = useCardStore();
+const cardStore = useCardStore();
+const { getCard, saveCard, setHidden } = cardStore;
+
+const card = ref<Card>(MISSINGNO);
 
 const toggleWantIt = () => {
   appStore.toggleWant(props.number);
@@ -108,7 +118,10 @@ const toggleHaveIt = () => {
   appStore.toggleHave(props.number);
 };
 
-const card = ref<Card>(MISSINGNO);
+const toggleHidden = () => {
+  if (!props.number) return;
+  setHidden(props.number, !isHidden.value);
+};
 
 const selectedState = computed<"have" | "want" | "unk">(() => {
   if (getCardHave.value(card.value.number)) return "have";
@@ -129,6 +142,8 @@ const color = computed(() => {
     want: "pink",
   }[selectedState.value];
 });
+
+const isHidden = computed(() => cardStore.isHidden(props.number));
 
 const loadCard = async (number: string): Promise<Card> => {
   const stored = getCard(number);

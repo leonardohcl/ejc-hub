@@ -24,6 +24,18 @@
         :value="expansionSet"
       >
         <ExpansionDisplay :expansion="+expansionSet" />
+        <v-badge
+          v-if="binderCounts[expansionSet].wants"
+          :content="binderCounts[expansionSet].wants"
+          inline
+          color="pink"
+        />
+        <v-badge
+          v-if="binderCounts[expansionSet].haves"
+          :content="binderCounts[expansionSet].haves"
+          inline
+          color="deep-purple"
+        />
       </v-tab>
     </v-tabs>
     <v-tabs-window v-model="tab">
@@ -38,11 +50,17 @@
           :sort-by="sortBy"
           :page-size="pageSize"
           :display="exibitionMode"
+          :show-hidden="showHidden"
         />
       </v-tabs-window-item>
     </v-tabs-window>
 
-    <v-navigation-drawer class="py-3" location="right" :permanent="mdAndUp" v-model="isDrawerOpen">
+    <v-navigation-drawer
+      class="py-3"
+      location="right"
+      :permanent="mdAndUp"
+      v-model="isDrawerOpen"
+    >
       <v-list-item title="Filtros" subtitle="Raridade">
         <v-chip-group
           v-model="rarityFilter"
@@ -104,6 +122,13 @@
           </v-btn>
         </v-btn-toggle>
       </v-list-item>
+      <v-list-item>
+        <v-switch
+          v-model="showHidden"
+          label="Mostrar cartas ocultas"
+          :color="showHidden ? 'primary' : ''"
+        />
+      </v-list-item>
 
       <template v-slot:append>
         <v-list-item>
@@ -124,7 +149,13 @@
       </template>
     </v-navigation-drawer>
 
-    <v-fab icon="mdi-dots-vertical" app color="primary" size="large" @click="isDrawerOpen = !isDrawerOpen"></v-fab>
+    <v-fab
+      icon="mdi-dots-vertical"
+      app
+      color="primary"
+      size="large"
+      @click="isDrawerOpen = !isDrawerOpen"
+    ></v-fab>
   </v-container>
 </template>
 
@@ -137,16 +168,19 @@ meta:
 import RarirtyDisplay from "@/components/atoms/RarirtyDisplay.vue";
 import { ExpansionSet, Rarity } from "@/model/Card";
 import { useAppStore } from "@/stores/app";
+import { useCardStore } from "@/stores/cards";
 import { storeToRefs } from "pinia";
 import { useDisplay } from "vuetify";
 
-const tab = ref(ExpansionSet.GeneticApex);
+const tab = ref(ExpansionSet.ShinyRevelry);
 
 const sortBy = ref<"number" | "name" | "rarity">("number");
 
-const exibitionMode = ref<"table"|"binder">("table");
+const exibitionMode = ref<"table" | "binder">("binder");
 
-const pageSize = ref(12);
+const showHidden = ref(false);
+
+const pageSize = ref(24);
 
 const {
   getUsername,
@@ -154,11 +188,31 @@ const {
   getWantsList: wants,
 } = storeToRefs(useAppStore());
 
+const cardStore = useCardStore();
+
 const binders = [
-  ExpansionSet.GeneticApex,
-  ExpansionSet.MythicalIsland,
+  // ExpansionSet.CelestialGuardians,
+  ExpansionSet.ShinyRevelry,
+  ExpansionSet.TriumphantLight,
   ExpansionSet.SpaceTimeSmackdown,
+  ExpansionSet.MythicalIsland,
+  ExpansionSet.GeneticApex,
 ];
+
+const binderCounts = computed<Dictionary<{ wants: number; have: number }>>(
+  () => {
+    const wantsByExpansion = cardStore.getCards(wants.value);
+    const havesByExpansion = cardStore.getCards(haves.value);
+
+    return binders.reduce((acc, next) => {
+      acc[next] = {
+        wants: wantsByExpansion.filter((x) => x.expansion === next).length,
+        haves: havesByExpansion.filter((x) => x.expansion === next).length,
+      };
+      return acc;
+    }, {});
+  }
+);
 
 const rarityOptions = [
   Rarity.OneDiamond,
@@ -169,6 +223,8 @@ const rarityOptions = [
   Rarity.TwoStars,
   Rarity.ThreeStars,
   Rarity.Crown,
+  Rarity.Shiny,
+  Rarity.DoubleShiny,
 ];
 
 const rarityFilter = ref([Rarity.ThreeDiamonds, Rarity.FourDiamonds]);
