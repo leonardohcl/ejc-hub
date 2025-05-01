@@ -166,6 +166,7 @@ meta:
 
 <script lang="ts" setup>
 import RarirtyDisplay from "@/components/atoms/RarirtyDisplay.vue";
+import type { Dictionary } from "@/model/Dictionary";
 import { ExpansionSet, Rarity } from "@/model/Card";
 import { useAppStore } from "@/stores/app";
 import { useCardStore } from "@/stores/cards";
@@ -199,18 +200,22 @@ const binders = [
   ExpansionSet.GeneticApex,
 ];
 
-const binderCounts = computed<Dictionary<{ wants: number; have: number }>>(
+const binderCounts = computed<Dictionary<{ wants: number; haves: number }>>(
   () => {
     const wantsByExpansion = cardStore.getCards(wants.value);
     const havesByExpansion = cardStore.getCards(haves.value);
 
-    return binders.reduce((acc, next) => {
+    return binders.reduce((acc, next: ExpansionSet) => {
       acc[next] = {
-        wants: wantsByExpansion.filter((x) => x.expansion === next).length,
-        haves: havesByExpansion.filter((x) => x.expansion === next).length,
+        wants: wantsByExpansion.filter((x) =>
+          x ? x.expansion === next : false
+        ).length,
+        haves: havesByExpansion.filter((x) =>
+          x ? x.expansion === next : false
+        ).length,
       };
       return acc;
-    }, {});
+    }, {} as Dictionary<{ wants: number; haves: number }>);
   }
 );
 
@@ -222,9 +227,9 @@ const rarityOptions = [
   Rarity.OneStar,
   Rarity.TwoStars,
   Rarity.ThreeStars,
-  Rarity.Crown,
   Rarity.Shiny,
   Rarity.DoubleShiny,
+  Rarity.Crown,
 ];
 
 const rarityFilter = ref([Rarity.ThreeDiamonds, Rarity.FourDiamonds]);

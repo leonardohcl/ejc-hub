@@ -24,8 +24,10 @@
             <v-col v-for="x in list" cols="12" sm="3" md="2">
               <CardSpace :number="x" show-expansion-set />
             </v-col>
-            <v-col v-if="list.length === 0" >
-              <v-empty-state text="Ops, não tem nenhuma carta aqui"></v-empty-state>
+            <v-col v-if="list.length === 0">
+              <v-empty-state
+                text="Ops, não tem nenhuma carta aqui"
+              ></v-empty-state>
             </v-col>
           </v-row>
         </v-tabs-window-item>
